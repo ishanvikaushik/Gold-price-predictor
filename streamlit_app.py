@@ -25,25 +25,25 @@ def load_data():
 
 df = load_data()
 
-# --- Data Validation ---
-st.subheader("🧪 Data Quality Check")
+# Data Validation 
+st.subheader("Data Quality Check")
 missing_values = df.isnull().sum()
 invalid_dates = df['ds'].isna().sum()
 invalid_prices = df['y'].isna().sum()
 
 if missing_values.sum() == 0 and invalid_dates == 0 and invalid_prices == 0:
-    st.success("✅ Data is clean — no missing values or invalid entries.")
+    st.success(" Data is clean — no missing values or invalid entries.")
 else:
-    st.warning("⚠️ Warning: Data contains missing values. Please review the source file.")
+    st.warning("Warning: Data contains missing values. Please review the source file.")
     st.write("Missing values per column:")
     st.write(missing_values)
 
-# --- Train Prophet Model ---
+#  Train Prophet Model 
 model = Prophet(daily_seasonality=True)
 model.add_country_holidays(country_name='IN')
 model.fit(df)
 
-# --- Forecast Future Prices ---
+#  Forecast Future Prices
 last_date = df['ds'].max()
 future = model.make_future_dataframe(periods=730)
 forecast = model.predict(future)
@@ -52,7 +52,7 @@ forecast = model.predict(future)
 today = pd.Timestamp.today().normalize()
 forecast_future = forecast[forecast['ds'] >= today]
 
-# --- Predict Specific Date ---
+# Predict Specific Date 
 st.subheader("🔍 Select a Date to Predict")
 selected_date = st.date_input("Choose a future date (within next 2 years):", min_value=today.date())
 
@@ -69,13 +69,13 @@ if st.button("Predict Gold Price"):
     else:
         st.warning("Selected date is beyond forecast range. Try a closer date.")
 
-# --- Forecast Chart (Past + Future) ---
-st.subheader("📉 Forecasted Trend (Past + Future)")
+#  Forecast Chart (Past + Future) 
+st.subheader("Forecasted Trend (Past + Future)")
 plot = plot_plotly(model, forecast)
 st.plotly_chart(plot, use_container_width=True)
 
-# --- Evaluate Model ---
-st.markdown("## 📊 Model Evaluation")
+# Evaluate Model 
+st.markdown("## Model Evaluation")
 
 def evaluate_model(df):
     split_idx = int(len(df) * 0.9)
@@ -95,19 +95,19 @@ def evaluate_model(df):
     return rmse, predicted, actual
 
 rmse, predicted, actual = evaluate_model(df)
-st.success(f"✅ RMSE (Root Mean Squared Error): ₹{rmse:.2f}")
+st.success(f" RMSE (Root Mean Squared Error): ₹{rmse:.2f}")
 st.caption("Lower RMSE means better prediction accuracy.")
 
-# --- Plot Predicted vs Actual ---
-st.subheader("📉 Predicted vs Actual Prices (Test Set)")
+#  Plot Predicted vs Actual 
+st.subheader(" Predicted vs Actual Prices (Test Set)")
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=actual['ds'], y=actual['y'], mode='lines+markers', name='Actual Price'))
 fig.add_trace(go.Scatter(x=predicted['ds'], y=predicted['yhat'], mode='lines+markers', name='Predicted Price'))
 fig.update_layout(xaxis_title='Date', yaxis_title='Gold Price (₹/gram)', legend_title='Legend', template='plotly_white')
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Display Next 7 Days Prediction ---
-st.subheader("📋 Recent Predictions (Next 7 Days)")
+# Display Next 7 Days Prediction 
+st.subheader(" Recent Predictions (Next 7 Days)")
 next_7_days = forecast_future.head(7)[['ds', 'yhat']]
 next_7_days = next_7_days.rename(columns={'ds': 'Date', 'yhat': 'Predicted Price (₹)'})
 st.dataframe(next_7_days)
